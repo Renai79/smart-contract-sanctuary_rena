@@ -1,0 +1,43 @@
+# This workflow can be triggered manually and will both greet and commit.
+name: Manual update
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Person to greet'
+        default: 'World'
+        required: true
+        type: string
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # allow pushing commits
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Send greeting
+        run: echo "Hello ${{ inputs.name }}"
+
+      - name: Set date
+        run: echo "TODAY=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+
+      - name: Write greeting and date to update.txt
+        run: |
+          mkdir -p logs
+          echo "Hello ${{ inputs.name }} - ${{ env.TODAY }}" > logs/update.txt
+
+      - name: Commit and push
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'logs/update.txt'
+          message: "chore: manual update by ${{ inputs.name }} at ${{ env.TODAY }}"
+          author_name: "Renai"
+          # 👇 Replace with your actual GitHub noreply email from Settings → Emails
+          author_email: "140294481+Renai79@users.noreply.github.com"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
